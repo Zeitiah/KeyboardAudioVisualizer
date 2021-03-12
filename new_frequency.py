@@ -1,6 +1,7 @@
 #!/bin/python
 import aubio
 import subprocess 
+import pyaudio
 from time import sleep
 
 def write_to_input(path, switch):
