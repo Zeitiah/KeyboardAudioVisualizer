@@ -1,0 +1,1 @@
+play 036-XenobladeChroniclesOST-GaurPlain.mp3 stat -freq > out.txt 2>&1 | tail -1
