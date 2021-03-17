@@ -8,19 +8,23 @@ def write_to_input(path, switch):
     x = open(path,'w')
     x.write(switch)
     x.close()
-def get_pitches(path):
+def array_to_byte(numpy_array):
+    # pyaudio cannot play sound from numpy arrays
+    # The contents must all me converted into one byte object
+    byte_samples = bytes()
+    for i in numpy_array:
+        byte_samples += bytes(i)
+    return byte_samples
+def main(path):
     src = aubio.source(path)
     hop_size = src.hop_size
+    pitch_object = aubio.pitch(samplerate=src.samplerate)
     pyaudio_object = pyaudio.PyAudio()
     stream = pyaudio_object.open(format=pyaudio.paFloat32, channels=src.channels, rate=src.samplerate, output=True)
-    pitch_object = aubio.pitch(samplerate=src.samplerate)
 
     while True:
         samples, read = src()
-        byte_samples = bytes()
-        for i in samples:
-            byte_samples += bytes(i)
-        stream.write(byte_samples)
+        stream.write(array_to_byte(samples))
         pitch = pitch_object(samples)
         if pitch[0] < 25:
             write_to_input('/sys/class/leds/input17::scrolllock/brightness', '0') 
@@ -39,32 +43,13 @@ def get_pitches(path):
             write_to_input('/sys/class/leds/input17::capslock/brightness', '1') 
             write_to_input('/sys/class/leds/input17::numlock/brightness', '1') 
 
-        if read < src.hop_size:
+        if read < hop_size:
             break
     stream.stop_stream()
     stream.close()
     pyaudio_object.terminate()
-    print('Finished get_pitches')
-    return pitches
+    return True
 
 if __name__ == '__main__':
-    # Length is 24291
-    for i in get_pitches('036-XenobladeChroniclesOST-GaurPlain.mp3'):
-        if i < 25:
-            write_to_input('/sys/class/leds/input17::scrolllock/brightness', '0') 
-            write_to_input('/sys/class/leds/input17::capslock/brightness', '0') 
-            write_to_input('/sys/class/leds/input17::numlock/brightness', '0') 
-        elif i < 440:
-            write_to_input('/sys/class/leds/input17::scrolllock/brightness', '1') 
-            write_to_input('/sys/class/leds/input17::capslock/brightness', '0') 
-            write_to_input('/sys/class/leds/input17::numlock/brightness', '0') 
-        elif i < 1100:
-            write_to_input('/sys/class/leds/input17::scrolllock/brightness', '1') 
-            write_to_input('/sys/class/leds/input17::capslock/brightness', '1') 
-            write_to_input('/sys/class/leds/input17::numlock/brightness', '0') 
-        else:
-            write_to_input('/sys/class/leds/input17::scrolllock/brightness', '1') 
-            write_to_input('/sys/class/leds/input17::capslock/brightness', '1') 
-            write_to_input('/sys/class/leds/input17::numlock/brightness', '1') 
-        sleep(0.01)
-
+    main('036-XenobladeChroniclesOST-GaurPlain.mp3')
+    
