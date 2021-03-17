@@ -1,0 +1,6 @@
+This program has a few problems: the audio is faster and higher pitched then normal, the visualization doesn't look good, and I think the current way of changing the LEDs is
+slightly inefficient. 
+TO DO:
+	Change from measuring pitch, to measuring frequency
+	Fix pyaudio problems mentioned above 
+	Rewrite how the LEDs change state
